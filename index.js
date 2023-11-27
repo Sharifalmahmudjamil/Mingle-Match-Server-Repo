@@ -31,6 +31,7 @@ async function run() {
 
     const BioDataCollection=client.db('BioDataDb').collection('biodatas');
     const userDataCollection=client.db('BioDataDb').collection('users');
+    const FavouritesDataCollection=client.db('BioDataDb').collection('favourites');
 
        // jwt related api
        app.post('/jwt',async(req,res)=>{
@@ -74,6 +75,14 @@ async function run() {
 
     app.get('/data',async(req,res)=>{
       const result= await BioDataCollection.find().toArray();
+      res.send(result);
+    })
+
+
+    app.get('/data/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await BioDataCollection.findOne(query);
       res.send(result);
     })
 
@@ -145,6 +154,27 @@ async function run() {
       const result= await userDataCollection.insertOne(user);
       res.send(result);
     })
+
+    // Favourite api
+
+    app.get('/favourites',async(req,res)=>{
+      // console.log(req.headers);
+      const result= await FavouritesDataCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.post('/favourite',async(req,res)=>{
+      const item =req.body;
+      const result= await FavouritesDataCollection.insertOne(item);
+      res.send(result);
+    })
+
+    app.delete('/favourites/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query= {_id: new ObjectId(id)}
+      const result= await FavouritesDataCollection.deleteOne(query);
+      res.send(result);
+  })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
