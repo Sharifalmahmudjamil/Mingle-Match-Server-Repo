@@ -3,6 +3,7 @@ const app=express();
 const cors = require('cors');
 const jwt=require('jsonwebtoken');
 require('dotenv').config()
+const stripe=require('stripe')(process.env.STRIPE_SECRET_KEY)
 const port= process.env.PORT || 5000;
 
 
@@ -32,6 +33,8 @@ async function run() {
     const BioDataCollection=client.db('BioDataDb').collection('biodatas');
     const userDataCollection=client.db('BioDataDb').collection('users');
     const FavouritesDataCollection=client.db('BioDataDb').collection('favourites');
+    const premiumDataCollection=client.db('BioDataDb').collection('premium');
+    const paymentCollection=client.db('BioDataDb').collection('payments');
 
        // jwt related api
        app.post('/jwt',async(req,res)=>{
@@ -159,7 +162,10 @@ async function run() {
 
     app.get('/favourites',async(req,res)=>{
       // console.log(req.headers);
-      const result= await FavouritesDataCollection.find().toArray();
+      const email= req.query.email;
+      const query= {email:email}
+      console.log(query);
+      const result= await FavouritesDataCollection.find(query).toArray();
       res.send(result);
     })
 
@@ -175,6 +181,42 @@ async function run() {
       const result= await FavouritesDataCollection.deleteOne(query);
       res.send(result);
   })
+
+  // premium api
+
+  app.post('/premium',async(req,res)=>{
+    const item =req.body;
+    const result= await premiumDataCollection.insertOne(item);
+    res.send(result);
+  })
+    
+
+       // payment intent
+    app.post('/create-payment-intent',async(req,res)=>{
+      const {price} = req.body;
+      const amount= parseInt(price * 100);
+      console.log(amount,'amount inside the intent');
+
+      const paymentIntent= await stripe.paymentIntents.create({
+        amount:amount,
+        currency:'bdt',
+        payment_method_types: ['card']
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    })
+
+
+    // payment api
+    app.post('/payments',async(req,res)=>{
+      const payment=req.body;
+      const paymentResult= await paymentCollection.insertOne(payment);
+      console.log('payment info ',payment);
+      res.send(paymentResult);
+
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
