@@ -81,6 +81,8 @@ async function run() {
       res.send(result);
     })
 
+   
+
 
     app.get('/data/:id', async (req, res) => {
       const id = req.params.id;
@@ -216,6 +218,22 @@ async function run() {
       res.send(paymentResult);
 
     })
+
+    app.get('/payments/:email',verifyToken,async(req,res)=>{
+      const query={email:req.params.email};
+      if(req.params.email !== req.decoded.email){
+        return res.status(403).send({message: 'forbidden access'})
+      }
+      const result= await paymentCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    app.delete('/payments/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query= {_id: new ObjectId(id)}
+      const result= await paymentCollection.deleteOne(query);
+      res.send(result);
+  })
 
 
     // Send a ping to confirm a successful connection
