@@ -244,8 +244,47 @@ async function run() {
   })
 
   app.get('/success',async(req,res)=>{
-    const result= await SuccessCollection.find().toArray();
+    const result= await SuccessCollection.find().sort({date:1}).toArray();
     res.send(result);
+  })
+
+  // stats-analytics
+  app.get('/admin-stats',verifyToken,verifyAdmin,async(req,res)=>{
+    const users= await userDataCollection.estimatedDocumentCount();
+    const BioData= await BioDataCollection.estimatedDocumentCount();
+    const SuccessData= await SuccessCollection.estimatedDocumentCount();
+    const Booking= await paymentCollection.estimatedDocumentCount();
+    const result = await paymentCollection.aggregate([
+      {
+        $group:{
+          _id:null,
+          totalRevenue:{
+            $sum:'$price'
+          }
+        }
+      }
+    ]).toArray();
+
+    const revenue=result.length >0 ?result[0].totalRevenue : 0;
+
+
+    res.send({
+      users,
+      BioData,
+      SuccessData,
+      Booking,
+      revenue
+    })
+  })
+
+  // success Counter
+  app.get('/successCounter',async(req,res)=>{
+    const BioData= await BioDataCollection.estimatedDocumentCount();
+    const SuccessData= await SuccessCollection.estimatedDocumentCount();
+    res.send({
+      BioData,
+      SuccessData
+    })
   })
 
 
