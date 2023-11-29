@@ -35,6 +35,7 @@ async function run() {
     const FavouritesDataCollection=client.db('BioDataDb').collection('favourites');
     const premiumDataCollection=client.db('BioDataDb').collection('premium');
     const paymentCollection=client.db('BioDataDb').collection('payments');
+    const SuccessCollection=client.db('BioDataDb').collection('success');
 
        // jwt related api
        app.post('/jwt',async(req,res)=>{
@@ -234,6 +235,19 @@ async function run() {
       const result= await paymentCollection.deleteOne(query);
       res.send(result);
   })
+
+  // success related api
+  app.post('/success',async(req,res)=>{
+    const item =req.body;
+    const result= await SuccessCollection.insertOne(item);
+    res.send(result);
+  })
+
+  app.get('/success',async(req,res)=>{
+    const result= await SuccessCollection.find().toArray();
+    res.send(result);
+  })
+
 
 
     // Send a ping to confirm a successful connection
