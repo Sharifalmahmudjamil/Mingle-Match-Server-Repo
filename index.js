@@ -78,18 +78,61 @@ async function run() {
     // bio related api
 
     app.get('/data',async(req,res)=>{
-      const result= await BioDataCollection.find().toArray();
+      const page= parseInt(req.query.page)
+      const size= parseInt(req.query.size)
+      console.log('pagination query', page,size)
+    
+      const result= await BioDataCollection.find()
+      .skip(page*size)
+      .limit(size)
+      .toArray();
       res.send(result);
     })
-
-   
-
 
     app.get('/data/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await BioDataCollection.findOne(query);
       res.send(result);
+    })
+
+    // update
+    app.patch('/data/:id', async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) }
+      const updatedDoc = {
+        $set: {
+                 name: item.name,
+                FatherName: item.FatherName,
+                motherName: item.motherName,
+                Race: item.Race,
+                Weight: item.Weight,
+                age: item.age,
+                category: item.category,
+                date: item.date,
+                division: item.division,
+                PresentDivision: item.PresentDivision,
+                email: item.email,
+                height: item.height,
+                image: item.image,
+                number: item.number,
+                occupation: item.occupation,
+                partnerAge: item.partnerAge,
+                partnerHeight: item.partnerHeight,
+                partnerWeight: item.partnerWeight,
+                userEmail: item.userEmail
+        }
+      }
+
+      const result = await BioDataCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+    })
+
+    // pagination bio data page
+    app.get('/totalDataCount',async(req,res)=>{
+      const count= await BioDataCollection.estimatedDocumentCount();
+      res.send({count})
     })
 
 
