@@ -235,6 +235,25 @@ async function run() {
     const result= await premiumDataCollection.insertOne(item);
     res.send(result);
   })
+
+  app.get('/premium',async(req,res)=>{
+    const result=await premiumDataCollection.find().sort({age:1}).toArray();
+    res.send(result);
+  })
+ 
+
+  app.patch("/premium/approved/:id",verifyToken,verifyAdmin,async(req,res)=>{
+    const id= req.params.id;
+    const filter={_id: new ObjectId(id)}
+    const updatedDoc={
+      $set:{
+        role:"Approved"
+      }
+    }
+    const result= await premiumDataCollection.updateOne(filter,updatedDoc)
+    res.send(result);
+
+  })
     
 
        // payment intent
