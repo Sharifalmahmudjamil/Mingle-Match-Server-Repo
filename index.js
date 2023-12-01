@@ -272,6 +272,22 @@ async function run() {
       })
     })
 
+    // approved Contact request
+
+    app.patch("/payments/approved/:id",verifyToken,verifyAdmin,async(req,res)=>{
+      const id= req.params.id;
+      const filter={_id: new ObjectId(id)}
+      const updatedDoc={
+        $set:{
+          role:"Approved"
+        }
+      }
+      const result= await paymentCollection.updateOne(filter,updatedDoc)
+      res.send(result);
+  
+    })
+
+
 
     // payment api
     app.post('/payments',async(req,res)=>{
@@ -280,6 +296,11 @@ async function run() {
       console.log('payment info ',payment);
       res.send(paymentResult);
 
+    })
+    
+    app.get('/payments',verifyToken,verifyAdmin,async(req,res)=>{
+      const result= await paymentCollection.find().toArray();
+      res.send(result);
     })
 
     app.get('/payments/:email',verifyToken,async(req,res)=>{
@@ -290,6 +311,8 @@ async function run() {
       const result= await paymentCollection.find(query).toArray();
       res.send(result);
     })
+
+
 
     app.delete('/payments/:id',async(req,res)=>{
       const id = req.params.id;
